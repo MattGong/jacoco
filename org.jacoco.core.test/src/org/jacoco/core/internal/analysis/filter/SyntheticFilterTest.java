@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2019 Mountainminds GmbH & Co. KG and Contributors
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * Copyright (c) 2009, 2020 Mountainminds GmbH & Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *    Evgeny Mandrikov - initial API and implementation
@@ -57,13 +58,34 @@ public class SyntheticFilterTest extends FilterTestBase {
 	}
 
 	@Test
-	public void should_not_filter_Scala_anonymous_functions() {
+	public void should_filter_synthetic_method_with_prefix_anonfun_in_non_Scala_classes() {
 		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION,
 				Opcodes.ACC_SYNTHETIC, "$anonfun$main$1", "()V", null, null);
 		m.visitInsn(Opcodes.RETURN);
 
 		filter.filter(m, context, output);
+		assertMethodIgnored(m);
+	}
 
+	@Test
+	public void should_not_filter_synthetic_method_with_prefix_anonfun_in_Scala_classes() {
+		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION,
+				Opcodes.ACC_SYNTHETIC, "$anonfun$main$1", "()V", null, null);
+		m.visitInsn(Opcodes.RETURN);
+
+		context.classAttributes.add("ScalaSig");
+		filter.filter(m, context, output);
+		assertIgnored();
+	}
+
+	@Test
+	public void should_not_filter_synthetic_method_with_prefix_anonfun_in_Scala_inner_classes() {
+		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION,
+				Opcodes.ACC_SYNTHETIC, "$anonfun$main$1", "()V", null, null);
+		m.visitInsn(Opcodes.RETURN);
+
+		context.classAttributes.add("Scala");
+		filter.filter(m, context, output);
 		assertIgnored();
 	}
 
